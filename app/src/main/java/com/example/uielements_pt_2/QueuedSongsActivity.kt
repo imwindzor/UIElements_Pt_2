@@ -32,6 +32,7 @@ class QueuedSongsActivity : AppCompatActivity() {
     lateinit var builder: Notification.Builder
     private val channel_Id ="com.example.uielements_pt_2"
     private val description = "Notification"
+    lateinit var queuedSongs: MutableList<String>
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?)
@@ -72,7 +73,7 @@ class QueuedSongsActivity : AppCompatActivity() {
 
             notificationManager.notify(1234,builder.build())
 
-            // listview
+
             val adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, queuedSongs)
             myList = findViewById<ListView>(R.id.queue_songs)
             myList.adapter = adapter

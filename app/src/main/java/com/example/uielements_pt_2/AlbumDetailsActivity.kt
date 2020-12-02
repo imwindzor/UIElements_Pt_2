@@ -2,105 +2,85 @@ package com.example.uielements_pt_2
 
 import android.app.AlertDialog
 import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
 
 import android.util.Log
+import android.view.ContextMenu
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.*
+import com.example.uielements_pt_2.models.Album
+import com.example.uielements_pt_2.models.AlbumSong
 
 class AlbumDetailsActivity : AppCompatActivity() {
+    lateinit var album: Album
+    lateinit var albumTitle: TextView
+    lateinit var songsAlbumTableHandler: DatabaseHandler
+    lateinit var albumSongItem: MutableList<AlbumSong>
+    lateinit var adapter: ArrayAdapter<AlbumSong>
+    lateinit var albumSongListView: ListView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_album_details)
 
-        var albumItems: AlbumItem = intent.getSerializableExtra("data") as AlbumItem
-        var viewImage = findViewById<ImageView>(R.id.icon_details)
-        var viewText = findViewById<TextView>(R.id.icon_name)
+        albumSongListView = findViewById<ListView>(R.id.album_songs)
+        val album_id = intent.getIntExtra("album_id", 0)
+        songsAlbumTableHandler = DatabaseHandler(this)
+        album = songsAlbumTableHandler.albumReadOne(album_id)
+        albumTitle = findViewById(R.id.icon_name)
+        albumTitle.text = album.title
+        albumSongItem = songsAlbumTableHandler.albumSongRead()
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, albumSongItem)
+        albumSongListView.adapter = adapter
+        registerForContextMenu(albumSongListView)
+    }
 
-        if(albumItems.icons == R.drawable.hallelujah) {
-            viewImage.setImageResource(albumItems.icons!!)
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        val inflater = menuInflater
+        inflater.inflate(R.menu.album_details_remove_menu, menu)
+    }
 
-            val songsQueueArray = mutableListOf("Echo", "With You", "Here Again", "Worthy")
-            val adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songsQueueArray)
-            val albumSongs = findViewById<ListView>(R.id.album_songs)
-            albumSongs.adapter = adapter
+    override fun onContextItemSelected(item: MenuItem): Boolean {
 
-            albumSongs.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                val dialogAlert = AlertDialog.Builder(this)
-                dialogAlert.setMessage("Do you want to remove this song from list?")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes", DialogInterface.OnClickListener() { dialog, which ->
-                            val removeSong = songsQueueArray[position]
-                            songsQueueArray.remove(removeSong)
-                            adapter.notifyDataSetChanged()
+        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val listPosition = info.position
 
-                        })
-                        .setNegativeButton("No", DialogInterface.OnClickListener {
-                            dialog, which ->
-                            dialog.cancel()
-                        })
-                val alert = dialogAlert.create()
-                alert.setTitle("Alert! Deleting Song")
-                alert.show()
-            }// item listener
+        return when (item.itemId) {
+            R.id.go_to_remove_album_song -> {
+                val albumSong = albumSongItem[listPosition]
+                if(songsAlbumTableHandler.albumSongDelete(albumSong)){
+                    albumSongItem.removeAt(listPosition)
+                    adapter.notifyDataSetChanged()
+                    Toast.makeText(this,"Song deleted successfully", Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    Toast.makeText(this,"Song deletion failed", Toast.LENGTH_SHORT).show()
+                }
+                true
+            }
+            else -> super.onContextItemSelected(item)
         }
+    }
 
-        else if(albumItems.icons == R.drawable.tauren){
-            viewImage.setImageResource(albumItems.icons!!)
-            viewText.text = "Citizen of Heaven"
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.album_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
 
-            val songsQueueArray = mutableListOf("Perfect Peace", "Done", "Until Grace", "Trenches")
-            val adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songsQueueArray)
-            val albumSongs = findViewById<ListView>(R.id.album_songs)
-            albumSongs.adapter = adapter
-
-            albumSongs.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                val dialogAlert = AlertDialog.Builder(this)
-                dialogAlert.setMessage("Do you want to remove this song from list?")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes", DialogInterface.OnClickListener() { dialog, which ->
-                            val removeSong = songsQueueArray[position]
-                            songsQueueArray.remove(removeSong)
-                            adapter.notifyDataSetChanged()
-
-                        })
-                        .setNegativeButton("No", DialogInterface.OnClickListener {
-                            dialog, which ->
-                            dialog.cancel()
-                        })
-                val alert = dialogAlert.create()
-                alert.setTitle("Alert! Deleting Song")
-                alert.show()
-            }// item listener
-        }
-        else if(albumItems.icons == R.drawable.graves_gardens){
-            viewImage.setImageResource(albumItems.icons!!)
-            viewText.text = "Graves Into Gardens"
-
-            val songsQueueArray = mutableListOf("Graves Into Gardens", "Available", "Never Lost", "My Testimony")
-            val adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songsQueueArray)
-            val albumSongs = findViewById<ListView>(R.id.album_songs)
-            albumSongs.adapter = adapter
-
-            albumSongs.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                val dialogAlert = AlertDialog.Builder(this)
-                dialogAlert.setMessage("Do you want to remove this song from list?")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes", DialogInterface.OnClickListener() { dialog, which ->
-                            val removeSong = songsQueueArray[position]
-                            songsQueueArray.remove(removeSong)
-                            adapter.notifyDataSetChanged()
-
-                        })
-                        .setNegativeButton("No", DialogInterface.OnClickListener {
-                            dialog, which ->
-                            dialog.cancel()
-                        })
-                val alert = dialogAlert.create()
-                alert.setTitle("Alert! Deleting Song")
-                alert.show()
-            }// item listener
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.add_a_song_album -> {
+                startActivity(Intent(this, AddAlbumSongs::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
